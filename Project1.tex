@@ -1,0 +1,123 @@
+\documentclass[11pt]{article}
+%Gummi|065|=)
+\title{\textbf{Welcome to Gummi 0.6.6}}
+\author{Sudesh Wasnik}
+\date{}
+\begin{document}
+
+\maketitle
+
+
+\section{Bucket list --pura frontend h}
+\begin {enumerate}
+
+
+\end{enumerate} 	
+
+\section{Notes}
+\begin {enumerate}
+\item There is no assertion in Postgres
+\end{enumerate} 
+
+\section{Code snippets}
+\begin {enumerate}
+\item $replace, substr, left , split\_part $ for string manipulation
+\end{enumerate} 
+
+\section{Constraints}
+\subsection{Anime Table}
+\begin{enumerate}
+\item Primary Key --- uid 
+\item Unique -- link,popularity
+\item Not Null -- title
+\item Check --- $Episodes>0$
+\end{enumerate}
+
+
+\subsection {Genre Table}
+\begin{enumerate}
+\item genre - Not Null;
+\item $anime\_uid - foreign\_key $ on delete cascade
+\end{enumerate}
+
+
+\subsection {Favorite}
+\begin{enumerate}
+\item favorite - Not Null and foreign key (anime(uid)) on delete cascade;
+\item $profile_id$ - foreign key (profiles(pid)) on delete cascade;
+\end{enumerate}
+
+\subsection {Friends}
+\begin{enumerate}
+\item friend, pid- Not Null;
+\item pid,friend - Foreign Key (profiles(pid)) on delete cascade;
+\end{enumerate}
+
+
+
+\subsection {Profiles}
+\begin{enumerate}
+\item profile - Not Null;
+\item link,profile - unique;
+\item pid - Primary Key
+\end{enumerate}
+
+
+\subsection {Scores}
+\begin{enumerate}
+\item uid - Primary Key,Foriegn Key (review(uid)) on delete cascade
+\end{enumerate}
+
+
+\subsection {Review}
+\begin{enumerate}
+\item uid - Primary Key
+\item profile and anime-uid not null;
+\end{enumerate}
+
+
+\subsection {Paths}
+\begin{enumerate}
+\item f1,f2 - foriegn key profiles(pid) on delete cascade;
+\end{enumerate}
+
+
+\subsection {Connected}
+Root table for all pids
+\begin{enumerate}
+\item f1,f2 -- foriegn key to profiles(pid)
+\end{enumerate}
+
+
+
+\section{Funcitonalities}
+\begin{enumerate}
+
+	\item 4NF format --- All Tables Done
+
+	\item Materialized Views Made a lot (DONE)
+	\begin{enumerate}
+	\item connected
+	\item friends2
+	\item paths and path2
+	\end{enumerate}
+	\item Sequences
+	\begin{enumerate}
+	\item convtable --- serial
+	\item messages --- serial
+	\end{enumerate}
+	\item Indexes
+	Used for timestamp in messages
+	
+	\item Triggers 1) Friend Request accept hone pe connected table change krna hai
+	
+
+\end{enumerate}
+
+\section{Feedback}
+We hope you will enjoy using this release as much as we enjoyed creating it. If you have comments, suggestions or wish to report an issue you are experiencing - contact us at: \emph{https://github.com/alexandervdm/gummi}.
+
+\section{One more thing}
+If you are wondering where your old default text is; it has been stored as a template. The template menu can be used to access and restore it. 
+
+\end{document}

@@ -1,0 +1,159 @@
+
+// For deleting friend request and Modifying paths,paths2,friends2 and friends table
+
+create trigger del_freq1                                             
+after delete on  frequest                     
+for each row execute procedure del_freq1();
+
+
+create or replace function del_freq1() returns trigger as $del_freq1$
+declare 
+var1 bigint;
+var2 bigint;
+begin 
+select pid into var1 from profiles where profile=old.fromm;
+select pid into var2 from profiles where profile=old.too;
+insert into friends values (var1,var2);
+refresh materialized view friends2;
+refresh materialized view paths;
+refresh materialized view path2;
+return NULL;
+end;
+$del_freq1$ language plpgsql;
+
+
+
+
+// For deleting friend request and Modifying connected table
+
+create trigger del_freq2                                             
+after delete on  frequest                     
+for each row execute procedure del_freq2();
+
+create or replace function del_freq2() returns trigger as $del_freq2$
+declare 
+var1 bigint;
+var2 bigint;
+var3 bigint;
+var4 bigint;
+small bigint;
+begin 
+select pid into var1 from profiles where profile=old.fromm;
+select pid into var2 from profiles where profile=old.too;
+select f1 into var3 from connected where f2=var1;
+select f1 into var4 from connected where f2=var2;
+select least(var3,var4) into small ;
+update connected set f1=small where f1=var3 or f1=var4;
+return NULL;
+end;
+$del_freq2$ language plpgsql;
+
+
+// For deleting friend
+
+create trigger del_friend                                             
+after delete on  friends                     
+for each row execute procedure del_frend1();
+
+
+create or replace function del_frend1() returns trigger as $del_friend$
+begin
+refresh materialized view friends2;
+refresh materialized view paths;
+refresh materialized view path2;
+refresh materialized view connected;
+return NULL;
+end;
+$del_friend$ language plpgsql;
+
+
+// For timestamp in messages table ---
+CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.time = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+create trigger set_timestamp 
+before update on message 
+for each row 
+execute procedure  trigger_set_timestamp();
+
+
+
+
+
+
+
+\\Creating materialized views
+
+create materialized view friend1 as(
+    select *
+    from friendlist
+    union
+    select userid2, userid1
+    from friendlist);
+
+create materialized view friend2 as(
+    select *
+    from friendlist
+    union
+    select userid2, userid1
+    from friendlist
+    union
+    select userid, userid
+    from userdetails);
+
+create materialized view path as(
+    with recursive path(f,t) as
+        (select userid1, userid2
+        from friend2
+        union
+        select friend2.userid1, path.t
+        from path, friend2
+        where friend2.userid2 = path.f)
+    select * from path order by f asc, t asc);
+
+create materialized view path2 as(
+    select * 
+    from (select t as f1, f as f2
+        from path
+        where f>t
+        union select f as f1, t as f2
+        from path
+        where f<=t) as foo
+    order by foo.f1, foo.f2);
+
+create materialized view components as(
+    select distinct on(path2.f2)*
+    from path2 order by path2.f2, path2.f1);
+
+
+
+
+create materialized view dist as(
+    with recursive dist(f,t,arr) as(
+        select userid1, userid2, array[-1]::bigint[] as arr
+        from friend1
+        union
+        select userid1, t, arr || f as arr
+        from friend1, dist
+        where userid2 = f and t != userid1 and userid1 <> all(arr) and userid2 <> all(arr))
+    select * 
+    from dist);
+
+
+
+
+\\ Encoding to UTF-8
+iconv -t UTF-8 -f ISO-8859-15 movie_lines.txt > out.txt
+
+
+
+
+
+select unnest(m) from (
+select array_agg(user1|| ' ' ||user2) as m (select r.profile as user1,s.profile as user2 from review r inner join review s on r.anime_uid=s.anime_uid) group by user1,user2) where count(m)>=10;
